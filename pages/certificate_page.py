@@ -1,11 +1,16 @@
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import NoSuchElementException, WebDriverException
 from selenium.webdriver.support.wait import WebDriverWait
-import random
+from .locators import CertificatePageLocators
 import time
+import csv
+import pytest
+import codecs
 
 class CertificatePage():
-    def __init__(self, browser, url, timeout=10):
+
+    def __init__(self, browser, url, timeout=2):
         self.browser = browser
         self.url = url
         self.browser.implicitly_wait(timeout)
@@ -14,12 +19,51 @@ class CertificatePage():
         self.browser.get(self.url)
 
     def find_certificate(self):
-        SEND_NUMBER = self.browser.find_element(By.CSS_SELECTOR, "#certificates-text")
-        NUMBER = random.randint(0, 10000000000)
-        SEND_NUMBER.send_keys(NUMBER)
-        BUTTON_FIND = self.browser.find_element(By.CSS_SELECTOR, "#certificates-button")
-        BUTTON_FIND.click()
-        SUCCESS_OR_NOT = self.browser.find_element(By.CSS_SELECTOR, "#text1 :first-child").text
-        time.sleep(4)
-        assert SUCCESS_OR_NOT != "По данному запросу ничего не найдено", "No certificate found"
-        #assert SUCCESS_OR_NOT == "Сертификат не найден", "No certificate found"
+        with codecs.open('pages/names.csv', 'r', "utf-8") as f:
+            #reader = csv.reader(f)
+            one = next(f)
+            two = next(f)
+            three = next(f)
+            #elements = [one, two, three]
+        #for item in elements:
+
+            name = WebDriverWait(self.browser, 2).until(EC.presence_of_element_located((By.CSS_SELECTOR, '#certificates-text')))
+            name.clear()
+            name.send_keys(one)
+            find = WebDriverWait(self.browser, 2).until(EC.presence_of_element_located((By.CSS_SELECTOR, '#certificates-button')))
+            find.click()
+            #[name_person = self.browser.find_element(*CertificatePageLocators.NAME_PERSON).text
+            name_certificate = self.browser.find_element(*CertificatePageLocators.NAME_CERTIFICATE).text
+            date_certificate = self.browser.find_element(*CertificatePageLocators.DATE_CERTIFICATE).text
+
+            name = WebDriverWait(self.browser, 2).until(EC.presence_of_element_located((By.CSS_SELECTOR, '#certificates-text')))
+            name.clear()
+            name.send_keys(two)
+            find = WebDriverWait(self.browser, 2).until(EC.presence_of_element_located((By.CSS_SELECTOR, '#certificates-button')))
+            find.click()
+            #[name_person = self.browser.find_element(*CertificatePageLocators.NAME_PERSON).text
+            name_certificate = self.browser.find_element(*CertificatePageLocators.NAME_CERTIFICATE).text
+            name_certificate_2 = self.browser.find_element(*CertificatePageLocators.NAME_CERTIFICATE_2).text
+            name_certificate_3 = self.browser.find_element(*CertificatePageLocators.NAME_CERTIFICATE_3).text
+            date_certificate = self.browser.find_element(*CertificatePageLocators.DATE_CERTIFICATE).text
+            name = WebDriverWait(self.browser, 2).until(EC.presence_of_element_located((By.CSS_SELECTOR, '#certificates-text')))
+            name.clear()
+            name.send_keys(three)
+            none = WebDriverWait(self.browser, 2).until(EC.presence_of_element_located((By.CSS_SELECTOR, "#text1 :first-child"))).text
+            none = ''
+            assert none != 'По данному запросу ничего не найдено', 'None certificate was found'
+
+        rows = [[one,name_certificate,date_certificate],
+         [two,name_certificate,date_certificate],
+         [two,name_certificate_2,date_certificate],
+         [two,name_certificate_3,date_certificate],
+         [three,none,none,]]
+        
+        with codecs.open('pages/result.csv', 'w', "utf-8") as a:
+            writer = csv.writer(a, delimiter=',', quoting=csv.QUOTE_MINIMAL)
+            writer.writerows(rows)
+
+
+
+            
+        
